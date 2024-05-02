@@ -396,8 +396,8 @@ public class CodeGen_Visitor implements Visitor {
         Statement s = node.s;
         // labelMap.put(i.s, "_main");
         // System.out.println("_main:");
-        labelMap.put(i.s, "_main");
-        System.out.println("main:");
+        labelMap.put(i.s, "main");
+        System.out.println("_main:");
         node.i.accept(this, data);
         node.s.accept(this, data);
 
