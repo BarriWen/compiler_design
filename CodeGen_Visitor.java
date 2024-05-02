@@ -618,7 +618,7 @@ public class CodeGen_Visitor implements Visitor {
         Exp e = node.e;
         String size = (String) node.e.accept(this, data);
         return size + "# new array:" + node.accept(ppVisitor, 0) + "\n" + "popq %r8\n"
-                + "movq %r8, %rdi\n" + "incq %rdi\n" + "shlq $3, %rdi\n" + "callq _malloc\n"
+                + "movq %r8, %rdi\n" + "incq %rdi\n" + "shlq $3, %rdi\n" + "callq malloc\n"
                 + "movq %r8, (%rax)\n" + "pushq %rax\n";
     }
 
