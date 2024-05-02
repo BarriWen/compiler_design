@@ -1,6 +1,12 @@
 import syntaxtree.*;
 import java.util.HashMap;
 
+/*
+ * https://drive.google.com/file/d/17qDxsfmWVQPFmt-bS5BgnBYgTYnU4lm1/view?usp=sharing
+ * https://drive.google.com/file/d/1LGqxpnOw3jTZgEexLlx5CqGUq8JBGMMV/view?usp=sharing
+ * 
+ */
+
 
 /*
  * CodeGen_Visitor class This class implements a naive code generation for the MiniJava language.
