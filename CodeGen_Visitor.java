@@ -394,10 +394,10 @@ public class CodeGen_Visitor implements Visitor {
         // not in MiniC
         Identifier i = node.i;
         Statement s = node.s;
-        // labelMap.put(i.s, "_main");
-        // System.out.println("_main:");
-        labelMap.put(i.s, "main");
-        System.out.println("main:");
+        labelMap.put(i.s, "_main");
+        System.out.println("_main:");
+        // labelMap.put(i.s, "main");
+        // System.out.println("main:");
         node.i.accept(this, data);
         node.s.accept(this, data);
 
