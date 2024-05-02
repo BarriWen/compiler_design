@@ -394,10 +394,8 @@ public class CodeGen_Visitor implements Visitor {
         // not in MiniC
         Identifier i = node.i;
         Statement s = node.s;
-        labelMap.put(i.s, "_mai1212n");
-        System.out.println("_maixxxxn:");
-        // labelMap.put(i.s, "main");
-        // System.out.println("main:");
+        labelMap.put(i.s, "_main");
+        System.out.println("_main:");
         node.i.accept(this, data);
         node.s.accept(this, data);
 
@@ -514,6 +512,12 @@ public class CodeGen_Visitor implements Visitor {
         // create label for this method and store in labelMap
         String fullMethodName = currClass + "_" + i.s;
         String theLabel = fullMethodName;
+
+        // only for my vm enviroment
+        if (theLabel.equals("_main")) {
+            theLabel = "main";
+        }
+
         labelMap.put(fullMethodName, theLabel);
 
         stackOffset = -8 * (numFormals + numLocals); // reserve space for formals/locals
