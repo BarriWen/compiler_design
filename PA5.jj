@@ -100,6 +100,9 @@ TOKEN:
 |  <WHILE:      "while">
 |  <PRINTLN:    "print">
 |  <LENGTH:     "length">
+|  <LONG:       "long">
+|  <MALLOC:       "malloc">
+|  <SIZEOF:       "sizeof">
 |  <THIS:       "this">
 |  <NEW:        "new">
 |  <BANG:       "!">
@@ -139,6 +142,44 @@ MethodDeclList Start():
 }
 
 
+MethodDeclList MethodDecls() : 
+{
+  MethodDeclList mlist = null;
+  MethodDecl m;
+}
+{ 
+  (
+    (  m=MethodDecl() 
+       {mlist = new MethodDeclList(m,mlist);}
+    )*
+  ) 
+  {return mlist;}
+}
+
+
+
+MethodDecl MethodDecl()  :
+{
+  Type ty;
+  Token t;
+  FormalList flist = null;
+  VarDeclList vlist;
+  StatementList slist;
+  Exp e;
+}
+{
+  ty=Type() t=<ID> <LPAREN> (flist=FormalList())? <RPAREN>
+
+      <LCURLY>
+           vlist = VarDecls() 
+           slist = Statements()
+           <RETURN> e = Exp() <SEMICOLON>
+      <RCURLY>
+  {return new MethodDecl(ty,new Identifier(t.image),flist,vlist,slist,e);}
+
+}
+
+
 VarDeclList VarDecls() : 
 {
   VarDeclList vlist = null;
@@ -167,55 +208,34 @@ VarDecl VarDecl() :
 }
 
 Type Type():
-{}
-{ LOOKAHEAD(2)
+{
+  Token t;
+}
+{ 
+  
+  
   
   <BOOLEAN> 
   {return new BooleanType();}
   |
+  LOOKAHEAD(2)
+  <INT> <LBRACKET> <RBRACKET>
+  {return new IntArrayType();}
 
-  <INT> 
+  |
+
+  (<INT>|(<LONG> ("*")?)) 
   {return new IntegerType();}
+  |
   
-}
+  t = <ID>
+  {return new IdentifierType(t.image);}
 
 
-MethodDeclList MethodDecls() : 
-{
-  MethodDeclList mlist = null;
-  MethodDecl m;
-}
-{ 
-  (
-    (  m=MethodDecl() 
-       {mlist = new MethodDeclList(m,mlist);}
-    )*
-  ) 
-  {return mlist;}
 }
 
 
 
-MethodDecl MethodDecl()  :
-{
-  Type ty;
-  Token t;
-  FormalList flist;
-  VarDeclList vlist;
-  StatementList slist;
-  Exp e;
-}
-{
-  ty=Type() t=<ID> <LPAREN> flist=FormalList() <RPAREN>
-
-      <LCURLY>
-           vlist=VarDecls() 
-           slist = Statements()
-           <RETURN> e=Exp() <SEMICOLON>
-      <RCURLY>
-  {return new MethodDecl(ty,new Identifier(t.image),flist,vlist,slist,e);}
-
-}
 
 
 FormalList FormalList() : 
@@ -241,6 +261,7 @@ Formal Formal() :
   ty=Type() t=<ID> 
   {return new Formal(ty,new Identifier(t.image));}
 }
+
 
 
 StatementList Statements() :
@@ -278,27 +299,37 @@ Statement Statement() :
   LOOKAHEAD(2) t=<ID> <EQUALS> e1=Exp() <SEMICOLON> 
   {return(new Assign(new Identifier(t.image),e1));}
 
+  |
+   <WHILE> <LPAREN> e1 = Exp() <RPAREN> s1 = Statement()
+
+   {return(new While(e1, s1)); }
+  |
+
+  t = <ID> <LBRACKET> e1 = Exp() <RBRACKET> <EQUALS> e2 = Exp() <SEMICOLON>
+  {return (new ArrayAssign(new Identifier(t.image),e1,e2));}
+
 }
 
 
-Exp Exp() :
+Exp Exp():
 {Exp a,b;}
-{   
-  a=Exp4() (<AND> b=Exp4() {a = new And(a,b);} ) * 
-  {return a;}
+{ 
+   a=Exp4() 
+  (LOOKAHEAD(2) <AND> b=Exp4() {a = new And(a,b);})* 
+  {return(a);}
+
+
 
 }
 
 Exp Exp4():
 {Exp a,b;}
-{ 
+{
   a=Exp9() 
   (LOOKAHEAD(2) <LT> b=Exp9() {a = new LessThan(a,b);})* 
   {return(a);}
 
 }
-
-
 
 Exp Exp9():
 {Exp a,b;}
@@ -326,29 +357,43 @@ Exp Exp11():
   {return(a);}
 }
 
+
+
 Exp Exp12():
 {Exp a,b; 
- ExpList c;
+ ExpList c = null;
  Token t;}
 { 
-  a=Exp14() 
+  a=Exp14()
+
+  (
+    LOOKAHEAD(2)
+      <DOT> <LENGTH> 
+      {a = new ArrayLength(a);} 
+    |
+      <LBRACKET> b = Exp() <RBRACKET>   
+      {a = new ArrayLookup(a,b);}      
+  )*
+
   {return(a);}
 }
 
 Exp Exp14():
 {Exp a,b;}
 {
-  (
-    <BANG>   a=Exp16() {return new Not(a);}
-    |
-    a = Exp16() {return a;}
-  )
+   
+  <BANG> a = Exp16() 
+  {return(new Not(a));}
+  | 
+  a = Exp16()
+  {return(a);}
 }
+
 
 Exp Exp16() :
 {Exp a;
  Token t;
- ExpList c;
+ ExpList c = null;
  }
 { 
   t=<NUMBER> {return new IntegerLiteral(Integer.parseInt(t.image));}
@@ -356,15 +401,27 @@ Exp Exp16() :
   <TRUE> {return new True();}
   |
   <FALSE>  {return new False();}
-  |
+  |LOOKAHEAD(2)
     <LPAREN> a=Exp() <RPAREN>
   {return(new ExpGroup(a));}
   |
-  LOOKAHEAD(3)
-  t=<ID> <LPAREN> c=ExpList() <RPAREN> 
-  {return new Call(null,new Identifier(t.image),c);}
+  LOOKAHEAD(2)
+    t = <ID> <LPAREN> (c = ExpList())? <RPAREN> 
+  {return new Call(null,new Identifier(t.image),c);} 
   |
-  t=<ID>  {return new IdentifierExp(t.image);}
+  <THIS>
+  {return new This();}
+  |
+  <LPAREN> Type() <RPAREN> <MALLOC> <LPAREN> a = Exp() <RPAREN>
+  {return new NewArray(a);}
+  |
+  <NEW> t = <ID> <LPAREN> <RPAREN>
+  {return new NewObject(new Identifier(t.image));}
+  |
+  <SIZEOF> <LPAREN> <LONG> <RPAREN>
+  {return new IntegerLiteral(8);}
+  |         
+t=<ID>  {return new IdentifierExp(t.image);}
 
 }
 
@@ -378,5 +435,4 @@ ExpList ExpList() :
   (<COMMA> b=Exp() {a=new ExpList(a,b);})*
   {return a;}
 }
-
 
