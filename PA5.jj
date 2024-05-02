@@ -85,6 +85,7 @@ TOKEN:
 {
    <PUBLIC:     "public">
 |  <PREFACE:    "#include <stdio.h>\n#include <stdbool.h>\nvoid print(int n){printf(\"%10d\\n\",n);}">
+|  <PREFACE1:    "#include <stdio.h>\n#include <stdbool.h>\nvoid print(int n){printf(\"%10d\\n\",n);}\n#include <stdlib.h>">
 |  <CLASS:      "class">
 |  <STATIC:     "static">
 |  <VOID:       "void">
@@ -134,7 +135,7 @@ MethodDeclList Start():
   MethodDeclList ms;
 }
 {
-  <PREFACE>
+  (<PREFACE> | <PREFACE1>)
    ms = MethodDecls()
   {return ms;}
   <EOF>
