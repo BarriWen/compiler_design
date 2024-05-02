@@ -1,10 +1,10 @@
 #!/usr/bin/bash
-java -classpath ../../javacc.jar javacc PA5.jj
+java -classpath javacc.jar javacc PA5.jj
 javac PA5.java
 javac CodeGen_Visitor.java
 echo "compiled java files"
-cp tests/test.c tests/demo.c
 cd tests; gcc -c -S print.c
-java PA5 < tests/demo.c > tests/demo.s
-cd tests; gcc demo.s print.s -o demo; ./demo
+cd ..
+java PA5 < tests/demo_while.c > tests/demo_while.s
+cd tests; gcc demo_while.s print.s -o demo_while; ./demo_while
 
